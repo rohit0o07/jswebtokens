@@ -3,7 +3,7 @@ import { useRef, useState,useEffect } from 'react';
 import {getDownloadURL, getStorage,ref, uploadBytesResumable} from 'firebase/storage'
 import { app } from '../firebase';
 import { useDispatch } from 'react-redux';
-import { updateUserStart,updateUserSuccess,updateUserFailure, deleteUserStart ,deleteUserSuccess,deleteUserFailure} from '../redux/user/userSlice';
+import { updateUserStart,updateUserSuccess,updateUserFailure, deleteUserStart ,deleteUserSuccess,deleteUserFailure,signOut} from '../redux/user/userSlice';
 
 export default function Profile() {
   const dispatch = useDispatch();
@@ -84,6 +84,16 @@ const handleDeleteAccount = async () => {
     dispatch(deleteUserFailure(error));
   }
 }
+
+const handleSignOut =async () => {
+  try {
+    await fetch('/api/user/signout');
+    dispatch(signOut());
+  }catch(error) {
+    // dispatch(deleteUserFailure(error));
+      console.log(error)
+  }
+};
 return(
   <div className='p-3 max-w-lg mx-auto'>
     <h1 className='text-3xl font-semibold text-center my-7'>Profile</h1>
