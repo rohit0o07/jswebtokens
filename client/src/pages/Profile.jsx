@@ -2,14 +2,18 @@ import { useSelector} from 'react-redux';
 import { useRef, useState,useEffect } from 'react';
 import {getDownloadURL, getStorage,ref, uploadBytesResumable} from 'firebase/storage'
 import { app } from '../firebase';
+import { useDispatch } from 'react-redux';
+import { updateUserStart,updateUserSuccess,updateUserFailure } from '../redux/user/userSlice';
 
 export default function Profile() {
+  const dispatch = useDispatch();
   const fileRef = useRef(null);
   const [image,setImage] = useState(undefined);
   const [imagePercent,setImagePercent] = useState(0);
   const[imageError,setImageError] = useState(false);
-  const {currentUser} = useSelector((state) => state.user);
+  const {currentUser,loading,error} = useSelector((state) => state.user);
   const [formData,setFormData] = useState({})
+  const [updateSuccess,setUpdateSuccess] = useState(false);
 
 
   useEffect(() => {
@@ -36,6 +40,33 @@ export default function Profile() {
       ((downloadURL) => setFormData({...formData,profilePicture:downloadURL}));
   });
       
+};
+const handleChange = (e) => {
+  setFormData({...formData,[e.target.id]:e.target.value});
+};
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try{
+    dispatch(updateUserStart());
+    const res = await fetch(`/api/user/update/${currentUser._id}`,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+
+      },
+      body:JSON.stringify(formData),
+
+    });
+    const data =await res.json();
+    if(data.success === false) {
+      dispatch(updateUserFailure(data));
+      return;
+    }
+    dispatch(updateUserSuccess(data));
+    setUpdateSuccess(true);
+  } catch(error) {
+    dispatch(updateUserFailure(error));
+  }
 };
 return(
   <div className='p-3 max-w-lg mx-auto'>
