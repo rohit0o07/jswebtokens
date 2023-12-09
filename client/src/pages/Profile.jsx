@@ -6,56 +6,47 @@ import { useDispatch } from 'react-redux';
 import { updateUserStart,updateUserSuccess,updateUserFailure, deleteUserStart ,deleteUserSuccess,deleteUserFailure,signOut} from '../redux/user/userSlice';
 
 export default function Profile() {
-  const dispatch = useDispatch();
-  const fileRef = useRef(null);
-  const [image,setImage] = useState(undefined);
-  const [imagePercent,setImagePercent] = useState(0);
-  const[imageError,setImageError] = useState(false);
-  const {currentUser,loading,error} = useSelector((state) => state.user);
-  const [formData,setFormData] = useState({})
-  const [updateSuccess,setUpdateSuccess] = useState(false);
+ const dispatch = useDispatch();
+ const fileRef = useRef(null);
+ const [image,setImage] = useState(undefined);
+ const [imagePercent,setImagePercent] = useState(0);
+ const[imageError,setImageError] = useState(false);
+ const [formData,setFormData] = useState({})
+ const [updateSuccess,setUpdateSuccess] = useState(false);
 
-
-  useEffect(() => {
+ const {currentUser,loading,error} = useSelector((state) => state.user);
+ useEffect(() => {
     if (image) {
       handleFileUpload(image);
     }
-  },[image]);
-  const handleFileUpload = async (image) => {
+ },[image]);
+ const handleFileUpload = async (image) => {
     const storage = getStorage(app);
     const fileName = new Date().getTime() + image.name;
     const storageRef = ref(storage,fileName);
     const uploadTask = uploadBytesResumable(storageRef,image);
-  uploadTask.on(
+ uploadTask.on(
     'state_changed',
     (snapshot) => {
       const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100 ;
       setImagePercent(Math.round(progress));
     },
-    (error) => {
-      setImageError(true);
-    },
-    () => {
-      getDownloadURL(uploadTask.snapshot.ref).then
-      ((downloadURL) => setFormData({...formData,profilePicture:downloadURL}));
-  });
-      
+    (error) => {setImageError(true);},
+    () => {getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => setFormData({...formData, profilePicture:downloadURL}));});     
 };
 const handleChange = (e) => {
-  setFormData({...formData,[e.target.id]:e.target.value});
+ setFormData({...formData,[e.target.id]: e.target.value});
 };
 const handleSubmit = async (e) => {
-  e.preventDefault();
-  try{
+ e.preventDefault();
+ try{
     dispatch(updateUserStart());
     const res = await fetch(`/api/user/update/${currentUser._id}`,{
       method:'POST',
       headers:{
         'Content-Type':'application/json',
-
       },
       body:JSON.stringify(formData),
-
     });
     const data =await res.json();
     if(data.success === false) {
@@ -64,38 +55,37 @@ const handleSubmit = async (e) => {
     }
     dispatch(updateUserSuccess(data));
     setUpdateSuccess(true);
-  } catch(error) {
+ } catch(error) {
     dispatch(updateUserFailure(error));
-  }
+ }
 };
 
 const handleDeleteAccount = async () => {
-  try {
+ try {
     dispatch(deleteUserStart());
     const res = await fetch(`/api/user/delete/${currentUser._id}`,{
       method : 'DELETE',
     });
     const data = await res.json();
     if(data.success === false){
-      dispatch(deleteUserFailure(data));
+      dispatch(deleteUserSuccess(data));
       return;
     }
-  }catch(error){
+ }catch(error){
     dispatch(deleteUserFailure(error));
-  }
+ }
 }
 
-const handleSignOut =async () => {
-  try {
+const handleSignOut = async () => {
+ try {
     await fetch('/api/user/signout');
     dispatch(signOut());
-  }catch(error) {
-    // dispatch(deleteUserFailure(error));
+ }catch(error) {
       console.log(error)
-  }
+ }
 };
 return(
-  <div className='p-3 max-w-lg mx-auto'>
+ <div className='p-3 max-w-lg mx-auto'>
     <h1 className='text-3xl font-semibold text-center my-7'>Profile</h1>
     <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
       <input
@@ -172,6 +162,6 @@ return(
     <p className='text-green-700 mt-5'>
       {updateSuccess && 'User is updated successfully!'}
     </p>
-  </div>
+ </div>
 );
 }

@@ -13,10 +13,10 @@ export default function OAuth() {
       const provider = new GoogleAuthProvider();
       const auth = getAuth(app);
       const result = await signInWithPopup(auth, provider);
-      const res = await fetch("/api/auth/google", {
-        method: "POST",
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name: result.user.displayName,
@@ -27,9 +27,9 @@ export default function OAuth() {
       const data = await res.json();
       console.log(data);
       dispatch(signInSuccess(data));
-      navigate("/");
+      navigate('/');
     } catch (error) {
-      console.log("could not login with google", error);
+      console.log('could not login with google', error);
     }
   };
 
